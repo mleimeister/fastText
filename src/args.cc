@@ -145,7 +145,7 @@ void Args::parseArgs(const std::vector<std::string>& args) {
     } else if (args[ai] == "-dsub") {
       dsub = std::stoi(args[ai + 1]);
     } else if (args[ai] == "-tree") {
-      treeIndex = std::string(argv[ai + 1]);
+      treeIndex = std::string(args[ai + 1]);
     } else {
       std::cerr << "Unknown argument: " << args[ai] << std::endl;
       printHelp();

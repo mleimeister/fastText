@@ -169,9 +169,9 @@ void FastText::loadModel(std::istream& in) {
   model_->setQuantizePointer(qinput_, qoutput_, args_->qout);
 
   if (args_->model == model_name::sup) {
-    model_->setTargetCounts(dict_->getCounts(entry_type::label));
+    model_->setTargetCounts(dict_->getCounts(entry_type::label), dict_);
   } else {
-    model_->setTargetCounts(dict_->getCounts(entry_type::word));
+    model_->setTargetCounts(dict_->getCounts(entry_type::word), dict_);
   }
 }
 
@@ -521,9 +521,9 @@ void FastText::trainThread(int32_t threadId) {
 
   Model model(input_, output_, args_, threadId);
   if (args_->model == model_name::sup) {
-    model.setTargetCounts(dict_->getCounts(entry_type::label));
+    model.setTargetCounts(dict_->getCounts(entry_type::label), dict_);
   } else {
-    model.setTargetCounts(dict_->getCounts(entry_type::word));
+    model.setTargetCounts(dict_->getCounts(entry_type::word), dict_);
   }
 
   const int64_t ntokens = dict_->ntokens();

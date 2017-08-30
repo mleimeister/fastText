@@ -10,8 +10,11 @@
 #include "model.h"
 
 #include <iostream>
+#include <fstream>
 #include <assert.h>
 #include <algorithm>
+#include <string>
+#include <sstream>
 
 namespace fasttext {
 
@@ -222,13 +225,13 @@ void Model::update(const std::vector<int32_t>& input, int32_t target, real lr) {
   }
 }
 
-void Model::setTargetCounts(const std::vector<int64_t>& counts) {
+void Model::setTargetCounts(const std::vector<int64_t>& counts, std::shared_ptr<Dictionary> dict) {
   assert(counts.size() == osz_);
   if (args_->loss == loss_name::ns) {
     initTableNegatives(counts);
   }
   if (args_->loss == loss_name::hs) {
-    buildTree(counts);
+    buildTree(counts, dict);
   }
 }
 
