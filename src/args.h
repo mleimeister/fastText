@@ -49,6 +49,7 @@ class Args {
     int verbose;
     std::string pretrainedVectors;
     int saveOutput;
+    std::string treeIndex;
 
     bool qout;
     bool retrain;

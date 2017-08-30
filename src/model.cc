@@ -255,48 +255,98 @@ int32_t Model::getNegative(int32_t target) {
   return negative;
 }
 
-void Model::buildTree(const std::vector<int64_t>& counts) {
-  tree.resize(2 * osz_ - 1);
-  for (int32_t i = 0; i < 2 * osz_ - 1; i++) {
-    tree[i].parent = -1;
-    tree[i].left = -1;
-    tree[i].right = -1;
-    tree[i].count = 1e15;
-    tree[i].binary = false;
-  }
-  for (int32_t i = 0; i < osz_; i++) {
-    tree[i].count = counts[i];
-  }
-  int32_t leaf = osz_ - 1;
-  int32_t node = osz_;
-  for (int32_t i = osz_; i < 2 * osz_ - 1; i++) {
-    int32_t mini[2];
-    for (int32_t j = 0; j < 2; j++) {
-      if (leaf >= 0 && tree[leaf].count < tree[node].count) {
-        mini[j] = leaf--;
-      } else {
-        mini[j] = node++;
-      }
+void Model::buildTree(const std::vector<int64_t>& counts, std::shared_ptr<Dictionary> dict) {
+
+    if (args_->treeIndex == "")
+    {
+        std::cout << "Constructing Huffman tree." << std::endl;
+        tree.resize(2 * osz_ - 1);
+        for (int32_t i = 0; i < 2 * osz_ - 1; i++) {
+            tree[i].parent = -1;
+            tree[i].left = -1;
+            tree[i].right = -1;
+            tree[i].count = 1e15;
+            tree[i].binary = false;
+        }
+        for (int32_t i = 0; i < osz_; i++) {
+            tree[i].count = counts[i];
+        }
+        int32_t leaf = osz_ - 1;
+        int32_t node = osz_;
+        for (int32_t i = osz_; i < 2 * osz_ - 1; i++) {
+            int32_t mini[2];
+            for (int32_t j = 0; j < 2; j++) {
+                if (leaf >= 0 && tree[leaf].count < tree[node].count) {
+                    mini[j] = leaf--;
+                } else {
+                    mini[j] = node++;
+                }
+            }
+            tree[i].left = mini[0];
+            tree[i].right = mini[1];
+            tree[i].count = tree[mini[0]].count + tree[mini[1]].count;
+            tree[mini[0]].parent = i;
+            tree[mini[1]].parent = i;
+            tree[mini[1]].binary = true;
+        }
+        for (int32_t i = 0; i < osz_; i++) {
+            std::vector<int32_t> path;
+            std::vector<bool> code;
+            int32_t j = i;
+            while (tree[j].parent != -1) {
+                path.push_back(tree[j].parent - osz_);
+                code.push_back(tree[j].binary);
+                j = tree[j].parent;
+            }
+            paths.push_back(path);
+            codes.push_back(code);
+        }
     }
-    tree[i].left = mini[0];
-    tree[i].right = mini[1];
-    tree[i].count = tree[mini[0]].count + tree[mini[1]].count;
-    tree[mini[0]].parent = i;
-    tree[mini[1]].parent = i;
-    tree[mini[1]].binary = true;
-  }
-  for (int32_t i = 0; i < osz_; i++) {
-    std::vector<int32_t> path;
-    std::vector<bool> code;
-    int32_t j = i;
-    while (tree[j].parent != -1) {
-      path.push_back(tree[j].parent - osz_);
-      code.push_back(tree[j].binary);
-      j = tree[j].parent;
+    else {
+        std::cout << "Reading pre-computed tree index." << std::endl;
+        std::ifstream infile(args_->treeIndex, std::ifstream::in);
+
+        paths.resize(osz_);
+        codes.resize(osz_);
+
+        // read file line by line
+        while (infile)
+        {
+            std::string s;
+            if (!std::getline( infile, s )) break;
+
+            std::istringstream ss( s );
+            std::vector <std::string> record;
+
+            while (ss)
+            {
+                std::string s;
+                if (!std::getline( ss, s, ',' )) break;
+                record.push_back( s );
+            }
+
+            // the first element of record is the word from the vocabulary, the second the binary string,
+            // and the remaining elements the indices of the internal nodes
+            std::string word = record[0];
+            std::string binary = record[1];
+            std::vector<int32_t> path;
+            std::vector<bool> code;
+
+            // only go until record.size()-1, because the last value is empty (there's a comma before \n)
+            for (int32_t i = 2; i < record.size()-1; ++i)
+            {
+                path.push_back(std::stoi(record[i]));
+                auto x = binary[i-1];
+                bool y = (x == '1');
+                code.push_back(y);
+            }
+
+            // Put the path and code into the vectors according to their position in the vocabulary.
+            auto id = dict->getId(word);
+            paths[id] = path;
+            codes[id] = code;
+        }
     }
-    paths.push_back(path);
-    codes.push_back(code);
-  }
 }
 
 real Model::getLoss() const {

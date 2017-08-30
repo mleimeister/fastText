@@ -36,6 +36,7 @@ Args::Args() {
   verbose = 2;
   pretrainedVectors = "";
   saveOutput = 0;
+  treeIndex = "";
 
   qout = false;
   retrain = false;
@@ -143,6 +144,8 @@ void Args::parseArgs(const std::vector<std::string>& args) {
     cutoff = std::stoi(args[ai + 1]);
     } else if (args[ai] == "-dsub") {
       dsub = std::stoi(args[ai + 1]);
+    } else if (args[ai] == "-tree") {
+      treeIndex = std::string(argv[ai + 1]);
     } else {
       std::cerr << "Unknown argument: " << args[ai] << std::endl;
       printHelp();
@@ -202,6 +205,7 @@ void Args::printTrainingHelp() {
     << "  -loss               loss function {ns, hs, softmax} [" << lossToString(loss) << "]\n"
     << "  -thread             number of threads [" << thread << "]\n"
     << "  -pretrainedVectors  pretrained word vectors for supervised learning ["<< pretrainedVectors <<"]\n"
+    << "  -tree               precomputed tree index (if not set, a Huffman tree is constructed)\n"
     << "  -saveOutput         whether output params should be saved [" << saveOutput << "]\n";
 }
 
