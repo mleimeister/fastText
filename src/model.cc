@@ -335,8 +335,7 @@ void Model::buildTree(const std::vector<int64_t>& counts, std::shared_ptr<Dictio
             std::vector<int32_t> path;
             std::vector<bool> code;
 
-            // only go until record.size()-1, because the last value is empty (there's a comma before \n)
-            for (int32_t i = 2; i < record.size()-1; ++i)
+            for (int32_t i = 2; i < record.size(); ++i)
             {
                 path.push_back(std::stoi(record[i]));
                 auto x = binary[i-1];
